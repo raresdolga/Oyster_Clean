@@ -3,6 +3,7 @@ package com.tfl.billing;
 import org.junit.Before;
 import org.junit.Test;
 
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.UUID;
@@ -54,7 +55,7 @@ public class JourneyTest {
         controlClock = new MockSystemClock();
         controlClock.setCurrentTime(20, 0, 23);
         jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
-        controlClock.setCurrentTime(21,22,00);
+        controlClock.setCurrentTime(21,22,0);
         jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
         journey = new Journey(jS,jE);
     }
@@ -63,7 +64,7 @@ public class JourneyTest {
     public void durationSecondsTest(){
         controlClock.setCurrentTime(20, 0, 23);
         jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
-        controlClock.setCurrentTime(22,22,00);
+        controlClock.setCurrentTime(22,22,0);
         jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
         journey = new Journey(jS,jE);
         assertThat(journey.durationSeconds(), is(8497));
@@ -112,12 +113,13 @@ public class JourneyTest {
     public void formattedEndTimeTest(){
         controlClock.setCurrentTime(15, 03, 23);
         jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
-        controlClock.setCurrentTime(23,22,00);
+        controlClock.setCurrentTime(23,22,0);
         jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
         journey = new Journey(jS,jE);
+
         assertThat(journey.formattedStartTime(), is("28.11.2017 15:03"));
         // new values
-        controlClock.setCurrentTime(22,02,00);
+        controlClock.setCurrentTime(22,02,0);
         jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
         journey = new Journey(jS,jE);
         assertThat(journey.formattedStartTime(), is("28.11.2017 22:02"));
