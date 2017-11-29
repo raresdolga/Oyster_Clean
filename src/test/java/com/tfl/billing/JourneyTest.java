@@ -20,87 +20,76 @@ public class JourneyTest {
     private Journey journey;
     String dateVars;
     // must initialize all variables before
+
     @Before
     public void setVars() {
+
         controlClock = new MockSystemClock();
+
         controlClock.setCurrentTime(20, 0, 23);
         jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
+
         controlClock.setCurrentTime(21,22,0);
         jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
+
         journey = new Journey(jS,jE);
         dateVars = controlClock.getyearMonthDay();
     }
 
     @Test
     public void durationSecondsTest(){
+
         controlClock.setCurrentTime(20, 0, 23);
         jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
+
         controlClock.setCurrentTime(22,22,0);
         jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
         journey = new Journey(jS,jE);
+
         assertThat(journey.durationSeconds(), is(8497));
-        /*
-        // new values
-        controlClock.setCurrentTime(10, 0, 0);
-        jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
-        controlClock.setCurrentTime(10,0,50);
-        jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
-        journey = new Journey(jS,jE);
-        assertThat(journey.durationSeconds(), is(50));
-        */
+
     }
 
     @Test
     public void durationMinutesTest(){
+
         controlClock.setCurrentTime(20, 0, 23);
         jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
+
         controlClock.setCurrentTime(21,22,00);
         jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
+
         journey = new Journey(jS,jE);
+
         assertThat(journey.durationMinutes(), is("81:37"));
-        /*
-        // new values
-        controlClock.setCurrentTime(0, 12, 0);
-        jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
-        controlClock.setCurrentTime(0,22,20);
-        jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
-        journey = new Journey(jS,jE);
-        assertThat(journey.durationMinutes(), is("10:20"));
-        */
     }
 
     @Test
     public void formattedStartTimeTest(){
+
         controlClock.setCurrentTime(17, 33, 23);
         jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
+
         controlClock.setCurrentTime(21,22,00);
         jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
+
         journey = new Journey(jS,jE);
+
         assertThat(journey.formattedStartTime(), is(dateVars + " 17:33"));
-        /*
-        // new values
-        controlClock.setCurrentTime(10,02,00);
-        jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
-        journey = new Journey(jS,jE);
-        assertThat(journey.formattedStartTime(), is(dateVars + " 10:02"));
-        */
     }
 
     @Test
     public void formattedEndTimeTest(){
+
         controlClock.setCurrentTime(15, 03, 23);
         jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
+
         controlClock.setCurrentTime(23,22,0);
         jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
+
         journey = new Journey(jS,jE);
-        /*
+
         assertThat(journey.formattedStartTime(), is(dateVars + " 15:03"));
-        // new values
-        controlClock.setCurrentTime(22,02,0);
-        jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
-        journey = new Journey(jS,jE);
-        assertThat(journey.formattedStartTime(), is(dateVars + " 22:02"));
-        */
     }
 
 }

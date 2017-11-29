@@ -106,6 +106,7 @@ public class TravelTracker implements ScanListener {
         }
 
         paymentSystem.charge(customer, journeys, roundToNearestPenny(customerTotal));
+
     }
 
 
