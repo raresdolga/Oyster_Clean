@@ -29,7 +29,7 @@ public class TravelTracker implements ScanListener {
         this.customerDatabase = CustomerDbAdapter.getInstance();
     }
 
-    // constructor for testing
+    // dependency injection => reduces dependency, makes the code more reusable and testable
     public TravelTracker(List<JourneyEvent> eventLog, Set<UUID> currentlyTravelling, CustomerDb customerDatabase) {
         this.eventLog = eventLog;
         this.currentlyTravelling = currentlyTravelling;
@@ -63,9 +63,6 @@ public class TravelTracker implements ScanListener {
 
     // charge all clients
     public void chargeAccounts() {
-        // trebuie stearsa
-//        CustomerDatabase customerDatabase = CustomerDatabase.getInstance();
-
         List<Customer> customers = customerDatabase.getCustomers();
         for (Customer customer : customers) {
             totalJourneysFor(customer);

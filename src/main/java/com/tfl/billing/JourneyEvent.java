@@ -6,7 +6,7 @@ public abstract class JourneyEvent {
     private final UUID cardId;
     private final UUID readerId;
     private final long time;
-    private Clock clock = null;
+    private Clock clock;
 
     public JourneyEvent(UUID cardId, UUID readerId) {
         this.cardId = cardId;
@@ -19,7 +19,6 @@ public abstract class JourneyEvent {
         this.readerId = readerId;
         this.clock = clock;
         this.time = clock.now();
-
     }
 
     public UUID cardId() {
