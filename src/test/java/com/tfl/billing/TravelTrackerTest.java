@@ -2,14 +2,16 @@ package com.tfl.billing;
 
 import com.oyster.OysterCard;
 import com.tfl.billing.Adaptors.CustomerDb;
-import com.tfl.billing.Adaptors.CustomerDbAdapter;
+import com.tfl.billing.Adaptors.PaymentSystemI;
 import com.tfl.external.Customer;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import utilsForTests.MockSystemClock;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -18,16 +20,15 @@ import static org.junit.Assert.assertThat;
 
 public class TravelTrackerTest {
     private JUnitRuleMockery context = new JUnitRuleMockery();
-
+    private MockSystemClock clockTest = new MockSystemClock();
     // test objects for injecting into the travelTracker in order to check the changes
     private List<JourneyEvent> eventLogTest = new ArrayList<>();
     private Set<UUID> currentlyTravellingTest = new HashSet<>();
-    CustomerDb mockDatabase = context.mock(CustomerDb.class);
-    CustomerDb customerDbAdapter = CustomerDbAdapter.getInstance();
-
+    private CustomerDb mockDatabase = context.mock(CustomerDb.class);
+    private PaymentSystemI paymentSystem = context.mock(PaymentSystemI.class);
     @Rule
     public ExpectedException exceptions = ExpectedException.none();
-    TravelTracker travelTracker = new TravelTracker(eventLogTest, currentlyTravellingTest, mockDatabase);
+    TravelTracker travelTracker = new TravelTracker(eventLogTest, currentlyTravellingTest, mockDatabase, paymentSystem);
 
     @Test
     public void cardScannedCreatesJourneyStart() {
@@ -41,17 +42,12 @@ public class TravelTrackerTest {
             exactly(1).of(mockDatabase).isRegisteredId(card_id2); will(returnValue(true));
         }});
 
-        /*
-        Need to test just the card scanned functionality so do not involve other methods
-            travelTracker.connect(paddingtonReader);
-            paddingtonReader.touch(new OysterCard(read_id1));
-            paddingtonReader.touch(new OysterCard(read_id2));
-       */
         travelTracker.cardScanned(card_id1,reader_id1);
         travelTracker.cardScanned(card_id2,reader_id2);
         assertThat(eventLogTest.size(), is(2));
         assertThat(currentlyTravellingTest.size(), is(2));
         assertThat(eventLogTest.get(0).cardId(), is(card_id1));
+        assertThat(eventLogTest.get(1).cardId(), is(card_id2));
     }
     @Test
     public void cardScannedCreatesJourneyEnd() {
@@ -92,13 +88,25 @@ public class TravelTrackerTest {
     }
 
     @Test
-    public void chargeAccounts(){
+    public void chargeAccountsTest(){
         List<Customer> customers = new ArrayList<>();
         customers.add(new Customer("Ionut Deaconu", new OysterCard("76800000-8cf0-11bd-b23e-01db8c7f122b")));
         customers.add(new Customer("Andrei Margeloiu", new OysterCard("94619932-8be3-4476-8b45-01db8c7f")));
         customers.add(new Customer("Rares Dolga", new OysterCard("12197779-8be3-4476-8b45-01db8c7f")));
+        UUID testReader = UUID.randomUUID();
+
+        clockTest.setCurrentTime(10,20,0);
+        JourneyStart journeyStartTest = new JourneyStart(customers.get(0).cardId(), testReader,clockTest);
+        clockTest.setCurrentTime(11,20,0);
+        JourneyEnd journeyEndTest = new JourneyEnd(customers.get(0).cardId(), testReader,clockTest);
+        List<Journey> testJourneys = new ArrayList<>();
+
+        testJourneys.add(new Journey(journeyStartTest,journeyEndTest));
         context.checking(new Expectations(){{
             oneOf(mockDatabase).getCustomers(); will(returnValue(customers));
+            oneOf(paymentSystem).charge(customers.get(0),testJourneys,new BigDecimal(2.40));
+            oneOf(paymentSystem).charge(customers.get(1), new ArrayList<>(),new BigDecimal(0));
+            oneOf(paymentSystem).charge(customers.get(2), new ArrayList<>(),new BigDecimal(0));
         }});
         travelTracker.chargeAccounts();
     }

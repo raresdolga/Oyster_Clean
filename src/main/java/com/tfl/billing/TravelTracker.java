@@ -1,10 +1,12 @@
 package com.tfl.billing;
 
-import com.oyster.*;
+import com.oyster.OysterCardReader;
+import com.oyster.ScanListener;
 import com.tfl.billing.Adaptors.CustomerDb;
 import com.tfl.billing.Adaptors.CustomerDbAdapter;
+import com.tfl.billing.Adaptors.PaymentSystemAdaptor;
+import com.tfl.billing.Adaptors.PaymentSystemI;
 import com.tfl.external.Customer;
-import com.tfl.external.PaymentsSystem;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -22,18 +24,21 @@ public class TravelTracker implements ScanListener {
     private final Set<UUID> currentlyTravelling;
     // the database in use
     private final CustomerDb customerDatabase;
+    private PaymentSystemI paymentSystem;
 
     public TravelTracker() {
         this.eventLog = new ArrayList<JourneyEvent>();
         this.currentlyTravelling = new HashSet<UUID>();
         this.customerDatabase = CustomerDbAdapter.getInstance();
+        this.paymentSystem = PaymentSystemAdaptor.getInstance();
     }
 
     // dependency injection => reduces dependency, makes the code more reusable and testable
-    public TravelTracker(List<JourneyEvent> eventLog, Set<UUID> currentlyTravelling, CustomerDb customerDatabase) {
+    public TravelTracker(List<JourneyEvent> eventLog, Set<UUID> currentlyTravelling, CustomerDb customerDatabase, PaymentSystemI paymentSystem) {
         this.eventLog = eventLog;
         this.currentlyTravelling = currentlyTravelling;
         this.customerDatabase = customerDatabase;
+        this.paymentSystem = paymentSystem;
     }
 
     // add this travelTracker to listen to changes from the card readers
@@ -100,8 +105,9 @@ public class TravelTracker implements ScanListener {
             customerTotal = customerTotal.add(journeyPrice);
         }
 
-        PaymentsSystem.getInstance().charge(customer, journeys, roundToNearestPenny(customerTotal));
+        paymentSystem.charge(customer, journeys, roundToNearestPenny(customerTotal));
     }
+
 
 
     private BigDecimal roundToNearestPenny(BigDecimal poundsAndPence) {
