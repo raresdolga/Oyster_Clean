@@ -1,7 +1,6 @@
-package com.tfl.billing;
-
 import com.oyster.OysterCard;
 import com.oyster.OysterCardReader;
+import com.tfl.billing.TravelTracker;
 import com.tfl.underground.OysterReaderLocator;
 import com.tfl.underground.Station;
 
@@ -15,7 +14,7 @@ public class DummyExample {
 
         TravelTracker travelTracker = new TravelTracker();
 
-        travelTracker.connect(paddingtonReader, bakerStreetReader, kingsCrossReader);
+        //travelTracker.connect(paddingtonReader, bakerStreetReader, kingsCrossReader);
 
         paddingtonReader.touch(myCard);
         minutesPass(5);

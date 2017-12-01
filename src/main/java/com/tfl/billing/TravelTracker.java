@@ -1,11 +1,7 @@
 package com.tfl.billing;
 
-import com.oyster.OysterCardReader;
 import com.oyster.ScanListener;
-import com.tfl.billing.Adaptors.CustomerDb;
-import com.tfl.billing.Adaptors.CustomerDbAdapter;
-import com.tfl.billing.Adaptors.PaymentSystemAdaptor;
-import com.tfl.billing.Adaptors.PaymentSystemI;
+import com.tfl.billing.Adaptors.*;
 import com.tfl.external.Customer;
 
 import java.math.BigDecimal;
@@ -42,8 +38,8 @@ public class TravelTracker implements ScanListener {
     }
 
     // add this travelTracker to listen to changes from the card readers
-    public void connect(OysterCardReader... cardReaders) {
-        for (OysterCardReader cardReader : cardReaders) {
+    public void connect(OysterCardReaderI... cardReaders) {
+        for (OysterCardReaderI cardReader : cardReaders) {
             cardReader.register(this);
         }
     }

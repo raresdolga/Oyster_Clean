@@ -2,6 +2,7 @@ package com.tfl.billing;
 
 import com.oyster.OysterCard;
 import com.tfl.billing.Adaptors.CustomerDb;
+import com.tfl.billing.Adaptors.OysterCardReaderI;
 import com.tfl.billing.Adaptors.PaymentSystemI;
 import com.tfl.external.Customer;
 import org.jmock.Expectations;
@@ -124,5 +125,18 @@ public class TravelTrackerTest {
         }});
 
         travelTracker.chargeAccounts();
+    }
+
+    @Test
+    public void connectTest(){
+        OysterCardReaderI station1 = context.mock(OysterCardReaderI.class,"station1");
+        OysterCardReaderI station2 = context.mock(OysterCardReaderI.class,"station2");
+        OysterCardReaderI station3 = context.mock(OysterCardReaderI.class,"station3");
+        context.checking(new Expectations(){{
+            exactly(1).of(station1).register(travelTracker);
+            exactly(1).of(station2).register(travelTracker);
+            exactly(1).of(station3).register(travelTracker);
+        }});
+        travelTracker.connect(station1,station2,station3);
     }
 }
