@@ -4,15 +4,12 @@ import com.oyster.ScanListener;
 import com.tfl.billing.Adaptors.*;
 import com.tfl.external.Customer;
 
-import java.math.BigDecimal;
 import java.util.*;
 
 /*
     Tracks some changes in the system and stores the events
  */
 public class TravelTracker implements ScanListener {
-    static final BigDecimal OFF_PEAK_JOURNEY_PRICE = new BigDecimal(2.40);
-    static final BigDecimal PEAK_JOURNEY_PRICE = new BigDecimal(3.20);
 
     // all events that happened in the system
     private final List<JourneyEvent> eventLog;
@@ -20,13 +17,15 @@ public class TravelTracker implements ScanListener {
     private final Set<UUID> currentlyTravelling;
     // the database in use
     private final CustomerDb customerDatabase;
-    private PaymentSystemI paymentSystem;
+    private final PaymentSystemI paymentSystem;
+    private final CostCalculator costCalculator;
 
     public TravelTracker() {
         this.eventLog = new ArrayList<JourneyEvent>();
         this.currentlyTravelling = new HashSet<UUID>();
         this.customerDatabase = CustomerDbAdapter.getInstance();
         this.paymentSystem = PaymentSystemAdaptor.getInstance();
+        this.costCalculator = new CostCalculator(paymentSystem);
     }
 
     // dependency injection => reduces dependency, makes the code more reusable and testable
@@ -35,34 +34,9 @@ public class TravelTracker implements ScanListener {
         this.currentlyTravelling = currentlyTravelling;
         this.customerDatabase = customerDatabase;
         this.paymentSystem = paymentSystem;
+        this.costCalculator = new CostCalculator(paymentSystem);
     }
 
-    // add this travelTracker to listen to changes from the card readers
-    public void connect(OysterCardReaderI... cardReaders) {
-        for (OysterCardReaderI cardReader : cardReaders) {
-            cardReader.register(this);
-        }
-    }
-
-    // called by the card reader to flag that a card was touched
-    @Override
-    public void cardScanned(UUID cardId, UUID readerId) {
-        // if the person was registered as travelling, make a JourneyEnd
-        if (currentlyTravelling.contains(cardId)) {
-            eventLog.add(new JourneyEnd(cardId, readerId));
-            currentlyTravelling.remove(cardId);
-        } else {
-            // if the person is not travelling, make a JourneyStart
-            if (customerDatabase.isRegisteredId(cardId)) {
-                currentlyTravelling.add(cardId);
-                eventLog.add(new JourneyStart(cardId, readerId));
-            } else {
-                throw new UnknownOysterCardException(cardId);
-            }
-        }
-    }
-
-    // charge all clients
     public void chargeAccounts() {
         List<Customer> customers = customerDatabase.getCustomers();
         for (Customer customer : customers) {
@@ -70,7 +44,6 @@ public class TravelTracker implements ScanListener {
         }
     }
 
-    // compute the cost for a client and charge him
     private void totalJourneysFor(Customer customer) {
         List<JourneyEvent> customerJourneyEvents = new ArrayList<JourneyEvent>();
         for (JourneyEvent journeyEvent : eventLog) {
@@ -82,6 +55,7 @@ public class TravelTracker implements ScanListener {
         List<Journey> journeys = new ArrayList<Journey>();
 
         JourneyEvent start = null;
+
         for (JourneyEvent event : customerJourneyEvents) {
             if (event instanceof JourneyStart) {
                 start = event;
@@ -92,33 +66,27 @@ public class TravelTracker implements ScanListener {
             }
         }
 
-        BigDecimal customerTotal = new BigDecimal(0);
-        for (Journey journey : journeys) {
-            BigDecimal journeyPrice = OFF_PEAK_JOURNEY_PRICE;
-            if (peak(journey)) {
-                journeyPrice = PEAK_JOURNEY_PRICE;
-            }
-            customerTotal = customerTotal.add(journeyPrice);
+        costCalculator.calculateCost(customer, journeys);
+    }
+
+    public void connect(OysterCardReaderI... cardReaders) {
+        for (OysterCardReaderI cardReader : cardReaders) {
+            cardReader.register(this);
         }
-
-        paymentSystem.charge(customer, journeys, roundToNearestPenny(customerTotal));
-
     }
 
-
-
-    private BigDecimal roundToNearestPenny(BigDecimal poundsAndPence) {
-        return poundsAndPence.setScale(2, BigDecimal.ROUND_HALF_UP);
-    }
-
-    private boolean peak(Journey journey) {
-        return peak(journey.startTime()) || peak(journey.endTime());
-    }
-
-    private boolean peak(Date time) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(time);
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        return (hour >= 6 && hour <= 9) || (hour >= 17 && hour <= 19);
+    @Override
+    public void cardScanned(UUID cardId, UUID readerId) {
+        if (currentlyTravelling.contains(cardId)) {
+            eventLog.add(new JourneyEnd(cardId, readerId));
+            currentlyTravelling.remove(cardId);
+        } else {
+            if (CustomerDbAdapter.getInstance().isRegisteredId(cardId)) {
+                currentlyTravelling.add(cardId);
+                eventLog.add(new JourneyStart(cardId, readerId));
+            } else {
+                throw new UnknownOysterCardException(cardId);
+            }
+        }
     }
 }
