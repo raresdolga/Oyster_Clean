@@ -9,9 +9,9 @@ import java.util.UUID;
 /**
  * Created by Rares on 25.11.2017.
  */
-public class OysterCardAdapterReaderI implements OysterCardReaderI {
+public class OysterCardAdapterReader implements OysterCardReaderI {
     OysterCardReader cardReader = null;
-    public OysterCardAdapterReaderI(OysterCardReader cardReader){
+    public OysterCardAdapterReader(OysterCardReader cardReader){
         this.cardReader = cardReader;
     }
 

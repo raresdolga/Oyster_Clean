@@ -1,3 +1,5 @@
+package IntegrationTests;
+
 import com.oyster.OysterCard;
 import com.oyster.OysterCardReader;
 import com.tfl.billing.TravelTracker;

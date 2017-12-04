@@ -11,8 +11,6 @@ import java.util.*;
     Tracks some changes in the system and stores the events
  */
 public class TravelTracker implements ScanListener {
-    static final BigDecimal OFF_PEAK_JOURNEY_PRICE = new BigDecimal(2.40);
-    static final BigDecimal PEAK_JOURNEY_PRICE = new BigDecimal(3.20);
 
     // all events that happened in the system
     private final List<JourneyEvent> eventLog;
@@ -21,20 +19,23 @@ public class TravelTracker implements ScanListener {
     // the database in use
     private final CustomerDb customerDatabase;
     private PaymentSystemI paymentSystem;
+    private final CostCalculator journeyCost;
 
     public TravelTracker() {
         this.eventLog = new ArrayList<JourneyEvent>();
         this.currentlyTravelling = new HashSet<UUID>();
         this.customerDatabase = CustomerDbAdapter.getInstance();
         this.paymentSystem = PaymentSystemAdaptor.getInstance();
+        this.journeyCost = new JourneyCostCalculator();
     }
 
-    // dependency injection => reduces dependency, makes the code more reusable and testable
-    public TravelTracker(List<JourneyEvent> eventLog, Set<UUID> currentlyTravelling, CustomerDb customerDatabase, PaymentSystemI paymentSystem) {
+    // dependency injection
+    public TravelTracker(List<JourneyEvent> eventLog, Set<UUID> currentlyTravelling, CustomerDb customerDatabase, PaymentSystemI paymentSystem,CostCalculator journeyCost) {
         this.eventLog = eventLog;
         this.currentlyTravelling = currentlyTravelling;
         this.customerDatabase = customerDatabase;
         this.paymentSystem = paymentSystem;
+        this.journeyCost = journeyCost;
     }
 
     // add this travelTracker to listen to changes from the card readers
@@ -72,13 +73,16 @@ public class TravelTracker implements ScanListener {
 
     // compute the cost for a client and charge him
     private void totalJourneysFor(Customer customer) {
-        List<JourneyEvent> customerJourneyEvents = new ArrayList<JourneyEvent>();
-        for (JourneyEvent journeyEvent : eventLog) {
-            if (journeyEvent.cardId().equals(customer.cardId())) {
-                customerJourneyEvents.add(journeyEvent);
-            }
-        }
+        List<JourneyEvent> customerJourneyEvents = getJourneyEvents(customer);
 
+        List<Journey> journeys = getJourneys(customerJourneyEvents);
+
+        BigDecimal customerTotal = journeyCost.calculateCustomerTotal(journeys);
+
+        paymentSystem.charge(customer, journeys, customerTotal);
+    }
+
+    private List<Journey> getJourneys(List<JourneyEvent> customerJourneyEvents) {
         List<Journey> journeys = new ArrayList<Journey>();
 
         JourneyEvent start = null;
@@ -91,34 +95,18 @@ public class TravelTracker implements ScanListener {
                 start = null;
             }
         }
+        return journeys;
+    }
 
-        BigDecimal customerTotal = new BigDecimal(0);
-        for (Journey journey : journeys) {
-            BigDecimal journeyPrice = OFF_PEAK_JOURNEY_PRICE;
-            if (peak(journey)) {
-                journeyPrice = PEAK_JOURNEY_PRICE;
+    private List<JourneyEvent> getJourneyEvents(Customer customer) {
+        List<JourneyEvent> customerJourneyEvents = new ArrayList<JourneyEvent>();
+        for (JourneyEvent journeyEvent : eventLog) {
+            if (journeyEvent.cardId().equals(customer.cardId())) {
+                customerJourneyEvents.add(journeyEvent);
             }
-            customerTotal = customerTotal.add(journeyPrice);
         }
-
-        paymentSystem.charge(customer, journeys, roundToNearestPenny(customerTotal));
-
+        return customerJourneyEvents;
     }
 
 
-
-    private BigDecimal roundToNearestPenny(BigDecimal poundsAndPence) {
-        return poundsAndPence.setScale(2, BigDecimal.ROUND_HALF_UP);
-    }
-
-    private boolean peak(Journey journey) {
-        return peak(journey.startTime()) || peak(journey.endTime());
-    }
-
-    private boolean peak(Date time) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(time);
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        return (hour >= 6 && hour <= 9) || (hour >= 17 && hour <= 19);
-    }
 }

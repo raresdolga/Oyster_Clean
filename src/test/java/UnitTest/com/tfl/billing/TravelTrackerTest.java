@@ -1,6 +1,7 @@
-package com.tfl.billing;
+package UnitTest.com.tfl.billing;
 
 import com.oyster.OysterCard;
+import com.tfl.billing.*;
 import com.tfl.billing.Adaptors.CustomerDb;
 import com.tfl.billing.Adaptors.OysterCardReaderI;
 import com.tfl.billing.Adaptors.PaymentSystemI;
@@ -10,7 +11,7 @@ import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import utilsForTests.MockSystemClock;
+import UnitTest.com.tfl.billing.utilsUnitTest.MockSystemClock;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -24,17 +25,17 @@ public class TravelTrackerTest {
     private JUnitRuleMockery context = new JUnitRuleMockery();
     private MockSystemClock clockTest = new MockSystemClock();
 
-    // test objects for injecting into the travelTracker in order to check the changes
+    // test objects for injecting into the travelTracker, to check the changes
     private List<JourneyEvent> eventLogTest = new ArrayList<>();
     private Set<UUID> currentlyTravellingTest = new HashSet<>();
-
     private CustomerDb mockDatabase = context.mock(CustomerDb.class);
     private PaymentSystemI paymentSystem = context.mock(PaymentSystemI.class);
+    private CostCalculator journeyCost = context.mock(CostCalculator.class);
 
     @Rule
     public ExpectedException exceptions = ExpectedException.none();
 
-    TravelTracker travelTracker = new TravelTracker(eventLogTest, currentlyTravellingTest, mockDatabase, paymentSystem);
+    TravelTracker travelTracker = new TravelTracker(eventLogTest, currentlyTravellingTest, mockDatabase, paymentSystem,journeyCost);
 
     @Test
     public void cardScannedCreatesJourneyStart() {
@@ -44,8 +45,8 @@ public class TravelTrackerTest {
         UUID reader_id2 = UUID.randomUUID();
 
         context.checking(new Expectations(){{
-            exactly(2).of(mockDatabase).isRegisteredId(card_id1); will(returnValue(true));
-            exactly(1).of(mockDatabase).isRegisteredId(card_id2); will(returnValue(true));
+            oneOf(mockDatabase).isRegisteredId(card_id1); will(returnValue(true));
+            oneOf(mockDatabase).isRegisteredId(card_id2); will(returnValue(true));
         }});
 
         travelTracker.cardScanned(card_id1,reader_id1);
@@ -55,14 +56,15 @@ public class TravelTrackerTest {
         assertThat(currentlyTravellingTest.size(), is(2));
         assertThat(eventLogTest.get(0).cardId(), is(card_id1));
         assertThat(eventLogTest.get(1).cardId(), is(card_id2));
+
+        context.assertIsSatisfied();
     }
     @Test
     public void cardScannedCreatesJourneyEnd() {
         UUID card_id1 = UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00d");
         UUID reader_id1 = UUID.randomUUID();
         context.checking(new Expectations(){{
-            //oneOf(mockDatabase).getCustomers(); will(returnValue(customerDbAdapter.getCustomers()));
-            exactly(1).of(mockDatabase).isRegisteredId(card_id1); will(returnValue(true));
+            oneOf(mockDatabase).isRegisteredId(card_id1); will(returnValue(true));
         }});
 
         travelTracker.cardScanned(card_id1,reader_id1);
@@ -70,6 +72,8 @@ public class TravelTrackerTest {
         travelTracker.cardScanned(card_id1,reader_id1);
         assertThat(currentlyTravellingTest.size(), is(0));
         assertThat(eventLogTest.size(), is(2));
+
+        context.assertIsSatisfied();
     }
 
     @Test
@@ -86,6 +90,8 @@ public class TravelTrackerTest {
         exceptions.expectMessage("Oyster Card does not correspond to a known customer. Id: " + cardID_1);
 
         travelTracker.cardScanned(cardID_1,readerID_1);
+
+        context.assertIsSatisfied();
     }
 
     @Test
@@ -97,14 +103,16 @@ public class TravelTrackerTest {
         }});
 
         travelTracker.chargeAccounts();
+
+        context.assertIsSatisfied();
     }
 
     @Test
+    @SuppressWarnings(value = "unchecked")
     public void chargeAccountsTest(){
         List<Customer> customers = new ArrayList<>();
         customers.add(new Customer("Ionut Deaconu", new OysterCard("76800000-8cf0-11bd-b23e-01db8c7f122b")));
         customers.add(new Customer("Andrei Margeloiu", new OysterCard("94619932-8be3-4476-8b45-01db8c7f")));
-        customers.add(new Customer("Rares Dolga", new OysterCard("12197779-8be3-4476-8b45-01db8c7f")));
 
         UUID testReader = UUID.randomUUID();
 
@@ -117,14 +125,20 @@ public class TravelTrackerTest {
         eventLogTest.add(journeyStartTest);
         eventLogTest.add(journeyEndTest);
 
+        BigDecimal totalCost1 = new BigDecimal(2.40).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal totalCost2 = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+
         context.checking(new Expectations(){{
             oneOf(mockDatabase).getCustomers(); will(returnValue(customers));
-            oneOf(paymentSystem).charge(with(customers.get(0)),with(any(List.class)),with(new BigDecimal(2.40).setScale(2, BigDecimal.ROUND_HALF_UP)));
-            oneOf(paymentSystem).charge(customers.get(1), new ArrayList<>(),new BigDecimal(0.0).setScale(2, BigDecimal.ROUND_HALF_UP));
-            oneOf(paymentSystem).charge(customers.get(2), new ArrayList<>(),new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP));
+            oneOf(journeyCost).calculateCustomerTotal(with(any(List.class))); will(returnValue(totalCost1));
+            oneOf(paymentSystem).charge(with(customers.get(0)),with(any(List.class)),with(totalCost1));
+            oneOf(journeyCost).calculateCustomerTotal(new ArrayList<Journey>()); will(returnValue(totalCost2));
+            oneOf(paymentSystem).charge(customers.get(1), new ArrayList<>(),totalCost2);
         }});
 
         travelTracker.chargeAccounts();
+
+        context.assertIsSatisfied();
     }
 
     @Test
@@ -132,11 +146,13 @@ public class TravelTrackerTest {
         OysterCardReaderI station1 = context.mock(OysterCardReaderI.class,"station1");
         OysterCardReaderI station2 = context.mock(OysterCardReaderI.class,"station2");
         OysterCardReaderI station3 = context.mock(OysterCardReaderI.class,"station3");
+
         context.checking(new Expectations(){{
             exactly(1).of(station1).register(travelTracker);
             exactly(1).of(station2).register(travelTracker);
             exactly(1).of(station3).register(travelTracker);
         }});
+
         travelTracker.connect(station1,station2,station3);
     }
 }

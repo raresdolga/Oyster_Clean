@@ -1,8 +1,11 @@
-package com.tfl.billing;
+package UnitTest.com.tfl.billing;
 
+import com.tfl.billing.Journey;
+import com.tfl.billing.JourneyEnd;
+import com.tfl.billing.JourneyStart;
 import org.junit.Before;
 import org.junit.Test;
-import utilsForTests.MockSystemClock;
+import UnitTest.com.tfl.billing.utilsUnitTest.MockSystemClock;
 
 import java.util.UUID;
 
@@ -64,32 +67,5 @@ public class JourneyTest {
         assertThat(journey.durationMinutes(), is("81:37"));
     }
 
-    @Test
-    public void formattedStartTimeTest(){
-
-        controlClock.setCurrentTime(17, 33, 23);
-        jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
-
-        controlClock.setCurrentTime(21,22,00);
-        jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
-
-        journey = new Journey(jS,jE);
-
-        assertThat(journey.formattedStartTime(), is(dateVars + " 17:33"));
-    }
-
-    @Test
-    public void formattedEndTimeTest(){
-
-        controlClock.setCurrentTime(15, 03, 23);
-        jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
-
-        controlClock.setCurrentTime(23,22,0);
-        jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
-
-        journey = new Journey(jS,jE);
-
-        assertThat(journey.formattedStartTime(), is(dateVars + " 15:03"));
-    }
 
 }

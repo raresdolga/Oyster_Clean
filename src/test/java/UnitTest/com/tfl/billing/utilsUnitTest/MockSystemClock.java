@@ -1,4 +1,4 @@
-package utilsForTests;
+package UnitTest.com.tfl.billing.utilsUnitTest;
 
 import com.tfl.billing.Clock;
 
