@@ -111,8 +111,8 @@ public class TravelTrackerTest {
     @SuppressWarnings(value = "unchecked")
     public void chargeAccountsTest(){
         List<Customer> customers = new ArrayList<>();
-        customers.add(new Customer("Ionut Deaconu", new OysterCard("76800000-8cf0-11bd-b23e-01db8c7f122b")));
-        customers.add(new Customer("Andrei Margeloiu", new OysterCard("94619932-8be3-4476-8b45-01db8c7f")));
+        customers.add(new Customer("Mark Anton", new OysterCard("76800000-8cf0-11bd-b23e-01db8c7f122b")));
+        customers.add(new Customer("Jessica Anton", new OysterCard("94619932-8be3-4476-8b45-01db8c7f")));
 
         UUID testReader = UUID.randomUUID();
 

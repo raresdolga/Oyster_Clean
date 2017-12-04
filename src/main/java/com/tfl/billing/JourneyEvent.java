@@ -6,19 +6,20 @@ public abstract class JourneyEvent {
     private final UUID cardId;
     private final UUID readerId;
     private final long time;
-    private Clock clock;
+    private final boolean start;
 
-    public JourneyEvent(UUID cardId, UUID readerId) {
+    public JourneyEvent(UUID cardId, UUID readerId, boolean start) {
         this.cardId = cardId;
         this.readerId = readerId;
         this.time = System.currentTimeMillis();
+        this.start = start;
     }
 
-    public JourneyEvent(UUID cardId, UUID readerId, Clock clock ) {
+    public JourneyEvent(UUID cardId, UUID readerId, Clock clock, boolean start) {
         this.cardId = cardId;
         this.readerId = readerId;
-        this.clock = clock;
         this.time = clock.now();
+        this.start = start;
     }
 
     public UUID cardId() {
@@ -31,5 +32,9 @@ public abstract class JourneyEvent {
 
     public long time() {
         return time;
+    }
+
+    public boolean isStart() {
+        return start;
     }
 }

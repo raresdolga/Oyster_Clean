@@ -4,9 +4,9 @@ import java.util.UUID;
 
 public class JourneyStart extends JourneyEvent {
     public JourneyStart(UUID cardId, UUID readerId) {
-        super(cardId, readerId);
+        super(cardId, readerId, true);
     }
-    public JourneyStart(UUID cardId, UUID readerId, Clock c) {
-        super(cardId, readerId,c);
+    public JourneyStart(UUID cardId, UUID readerId, Clock clock) {
+        super(cardId, readerId, clock, true);
     }
 }

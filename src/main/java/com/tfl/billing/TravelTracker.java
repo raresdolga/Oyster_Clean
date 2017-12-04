@@ -86,11 +86,12 @@ public class TravelTracker implements ScanListener {
         List<Journey> journeys = new ArrayList<Journey>();
 
         JourneyEvent start = null;
+
         for (JourneyEvent event : customerJourneyEvents) {
-            if (event instanceof JourneyStart) {
+            // changed from instanceof to boolean method isStart
+            if (event.isStart()) {
                 start = event;
-            }
-            if (event instanceof JourneyEnd && start != null) {
+            } else if (event instanceof JourneyEnd && start != null) {
                 journeys.add(new Journey(start, event));
                 start = null;
             }
