@@ -5,9 +5,7 @@ import com.tfl.billing.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-/**
- * Created by Rares on 29.11.2017.
- */
+
 public class MockSystemClock implements Clock {
     private LocalDateTime time;
     private LocalDateTime now;

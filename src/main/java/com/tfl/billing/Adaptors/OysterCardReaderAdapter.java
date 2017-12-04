@@ -6,12 +6,10 @@ import com.oyster.ScanListener;
 
 import java.util.UUID;
 
-/**
- * Created by Rares on 25.11.2017.
- */
-public class OysterCardAdapterReader implements OysterCardReaderI {
-    OysterCardReader cardReader = null;
-    public OysterCardAdapterReader(OysterCardReader cardReader){
+
+public class OysterCardReaderAdapter implements OysterCardReaderI {
+    OysterCardReader cardReader;
+    public OysterCardReaderAdapter(OysterCardReader cardReader){
         this.cardReader = cardReader;
     }
 
@@ -27,6 +25,6 @@ public class OysterCardAdapterReader implements OysterCardReaderI {
 
     @Override
     public UUID id() {
-        return null;
+        return cardReader.id();
     }
 }

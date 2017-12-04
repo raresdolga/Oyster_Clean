@@ -12,9 +12,7 @@ import java.util.UUID;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-/**
- * Created by Rares on 27.11.2017.
- */
+
 public class JourneyTest {
 
     MockSystemClock controlClock;

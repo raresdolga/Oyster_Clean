@@ -22,8 +22,8 @@ public class TravelTracker implements ScanListener {
     private final CostCalculator journeyCost;
 
     public TravelTracker() {
-        this.eventLog = new ArrayList<JourneyEvent>();
-        this.currentlyTravelling = new HashSet<UUID>();
+        this.eventLog = new ArrayList<>();
+        this.currentlyTravelling = new HashSet<>();
         this.customerDatabase = CustomerDbAdapter.getInstance();
         this.paymentSystem = PaymentSystemAdaptor.getInstance();
         this.journeyCost = new JourneyCostCalculator();

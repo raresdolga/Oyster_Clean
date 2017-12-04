@@ -6,9 +6,7 @@ import com.tfl.external.CustomerDatabase;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Created by Rares on 25.11.2017.
- */
+
 public class CustomerDbAdapter implements CustomerDb {
     private static CustomerDb ourInstance = new CustomerDbAdapter();
     private CustomerDatabase db = CustomerDatabase.getInstance();
