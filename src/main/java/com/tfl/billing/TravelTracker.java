@@ -67,15 +67,15 @@ public class TravelTracker implements ScanListener {
     public void chargeAccounts() {
         List<Customer> customers = customerDatabase.getCustomers();
         for (Customer customer : customers) {
-            totalJourneysFor(customer);
+            chargeCustomer(customer);
         }
     }
 
     // compute the cost for a client and charge him
-    private void totalJourneysFor(Customer customer) {
-        List<JourneyEvent> customerJourneyEvents = getJourneyEvents(customer);
-
-        List<Journey> journeys = getJourneys(customerJourneyEvents);
+    // changed name from totalJourneysFor
+    // method refactored
+    private void chargeCustomer(Customer customer) {
+        List<Journey> journeys = getJourneys(getCustomerJourneyEvents(customer));
 
         BigDecimal customerTotal = journeyCost.calculateCustomerTotal(journeys);
 
@@ -98,7 +98,7 @@ public class TravelTracker implements ScanListener {
         return journeys;
     }
 
-    private List<JourneyEvent> getJourneyEvents(Customer customer) {
+    private List<JourneyEvent> getCustomerJourneyEvents(Customer customer) {
         List<JourneyEvent> customerJourneyEvents = new ArrayList<JourneyEvent>();
         for (JourneyEvent journeyEvent : eventLog) {
             if (journeyEvent.cardId().equals(customer.cardId())) {
@@ -107,6 +107,4 @@ public class TravelTracker implements ScanListener {
         }
         return customerJourneyEvents;
     }
-
-
 }
