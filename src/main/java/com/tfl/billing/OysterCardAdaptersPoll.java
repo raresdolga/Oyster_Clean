@@ -14,14 +14,14 @@ import java.util.Map;
 
     Creates Adapters for OysterCardReader and maintains them in a Map for later retrieval
  */
-public class OysterCardPoll {
+public class OysterCardAdaptersPoll {
     private static Map<Station, OysterCardReaderI> readers;
 
     static  {
         readers = new HashMap<>();
     }
 
-    private OysterCardPoll() {
+    private OysterCardAdaptersPoll() {
 
     }
 
