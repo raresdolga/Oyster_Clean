@@ -25,7 +25,7 @@ public class JourneyCostCalculator implements CostCalculator {
 
     }
 
-    // compute cost of a client from his jouneys
+    // compute cost of a client from his journeys
     public BigDecimal calculateCustomerTotal(List<Journey> customerJourneys) {
         BigDecimal customerTotal = new BigDecimal(0);
 
@@ -49,11 +49,11 @@ public class JourneyCostCalculator implements CostCalculator {
     private BigDecimal getJourneyPrice(Journey journey) {
         BigDecimal journeyPrice;
 
-        if(peak(journey) && isLongJorney(journey)) {
+        if(peak(journey) && isLongJourney(journey)) {
             journeyPrice = PEAK_LONG;
         } else if(peak(journey)) {
             journeyPrice = PEAK_SHORT;
-        } else if(isLongJorney(journey)) {
+        } else if(isLongJourney(journey)) {
             journeyPrice = OFF_PEAK_LONG;
         } else {
             journeyPrice = OFF_PEAK_SHORT;
@@ -74,7 +74,7 @@ public class JourneyCostCalculator implements CostCalculator {
         return isMorningPeakTime(hour) || isEveningPeakTime(hour);
     }
 
-    private boolean isLongJorney(Journey journey){
+    private boolean isLongJourney(Journey journey){
         return journey.durationSeconds() >= minutesShortJourney * 60;
     }
 
