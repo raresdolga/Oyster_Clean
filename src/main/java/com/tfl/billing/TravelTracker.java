@@ -1,7 +1,7 @@
 package com.tfl.billing;
 
 import com.oyster.ScanListener;
-import com.tfl.billing.Adaptors.*;
+import com.tfl.billing.adaptors.*;
 import com.tfl.external.Customer;
 import com.tfl.external.CustomerDatabase;
 import com.tfl.external.PaymentsSystem;

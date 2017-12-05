@@ -8,7 +8,7 @@ public abstract class JourneyEvent {
     private final long time;
 
     /*
-          - differentiate the type of journey
+          - type of journey
           JourneyStart -> true
           JourneyEnd -> false
       */

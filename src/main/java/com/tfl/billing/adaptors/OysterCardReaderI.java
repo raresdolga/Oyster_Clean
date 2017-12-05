@@ -1,4 +1,4 @@
-package com.tfl.billing.Adaptors;
+package com.tfl.billing.adaptors;
 
 import com.oyster.OysterCard;
 import com.oyster.ScanListener;

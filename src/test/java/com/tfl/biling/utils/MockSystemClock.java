@@ -10,7 +10,6 @@ import java.time.ZoneId;
  */
 public class MockSystemClock implements Clock {
     private LocalDateTime time;
-    private LocalDateTime now;
     private long epoch = 0;
 
     private int day;
@@ -18,7 +17,7 @@ public class MockSystemClock implements Clock {
     private int year;
 
     public MockSystemClock(){
-        now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
         month = now.getMonthValue();
         day = now.getDayOfMonth();
         year = now.getYear();

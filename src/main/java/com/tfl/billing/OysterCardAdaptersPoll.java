@@ -1,7 +1,7 @@
 package com.tfl.billing;
 
-import com.tfl.billing.Adaptors.OysterCardReaderAdapter;
-import com.tfl.billing.Adaptors.OysterCardReaderI;
+import com.tfl.billing.adaptors.OysterCardReaderAdapter;
+import com.tfl.billing.adaptors.OysterCardReaderI;
 import com.tfl.underground.OysterReaderLocator;
 import com.tfl.underground.Station;
 

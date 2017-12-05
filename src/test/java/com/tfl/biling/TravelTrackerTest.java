@@ -3,9 +3,9 @@ package com.tfl.biling;
 import com.oyster.OysterCard;
 import com.tfl.biling.utils.MockSystemClock;
 import com.tfl.billing.*;
-import com.tfl.billing.Adaptors.CustomerDatabaseI;
-import com.tfl.billing.Adaptors.OysterCardReaderI;
-import com.tfl.billing.Adaptors.PaymentSystemI;
+import com.tfl.billing.adaptors.CustomerDatabaseI;
+import com.tfl.billing.adaptors.OysterCardReaderI;
+import com.tfl.billing.adaptors.PaymentSystemI;
 import com.tfl.external.Customer;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnitRuleMockery;
@@ -32,10 +32,10 @@ public class TravelTrackerTest {
     private final PaymentSystemI paymentSystem = context.mock(PaymentSystemI.class);
     private final CostCalculator journeyCost = context.mock(CostCalculator.class);
 
+    private final TravelTracker travelTracker = new TravelTracker(eventLogTest, currentlyTravellingTest, mockDatabase, paymentSystem,journeyCost);
+
     @Rule
     public final ExpectedException exceptions = ExpectedException.none();
-
-    private final TravelTracker travelTracker = new TravelTracker(eventLogTest, currentlyTravellingTest, mockDatabase, paymentSystem,journeyCost);
 
     @Test
     public void cardScannedCreatesJourneyStart() {
@@ -103,6 +103,9 @@ public class TravelTrackerTest {
             oneOf(mockDatabase).getCustomers(); will(returnValue(customers));
         }});
 
+        assertThat(eventLogTest.size(), is(0));
+        assertThat(currentlyTravellingTest.size(), is(0));
+
         travelTracker.chargeAccounts();
 
         context.assertIsSatisfied();
@@ -138,6 +141,9 @@ public class TravelTrackerTest {
         }});
 
         travelTracker.chargeAccounts();
+
+        assertThat(eventLogTest.size(), is(2));
+        assertThat(currentlyTravellingTest.size(), is(0));
 
         context.assertIsSatisfied();
     }

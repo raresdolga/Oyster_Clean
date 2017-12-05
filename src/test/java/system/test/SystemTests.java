@@ -2,7 +2,7 @@ package system.test;
 
 import com.oyster.OysterCard;
 import com.tfl.billing.OysterCardAdaptersPoll;
-import com.tfl.billing.Adaptors.OysterCardReaderI;
+import com.tfl.billing.adaptors.OysterCardReaderI;
 import com.tfl.billing.TravelTracker;
 import com.tfl.underground.Station;
 import org.junit.Test;
