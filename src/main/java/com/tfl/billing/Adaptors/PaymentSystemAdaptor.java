@@ -8,15 +8,14 @@ import java.math.BigDecimal;
 import java.util.List;
 
 
+/*
+    Adapter for PaymentSystem
+ */
 public class PaymentSystemAdaptor implements PaymentSystemI {
-    private static PaymentSystemI ourInstance = new PaymentSystemAdaptor();
-    private PaymentsSystem paymentsSystem = PaymentsSystem.getInstance();
+    private final PaymentsSystem paymentsSystem;
 
-    public static PaymentSystemI getInstance() {
-        return ourInstance;
-    }
-
-    private PaymentSystemAdaptor() {
+    public PaymentSystemAdaptor(PaymentsSystem paymentsSystem) {
+        this.paymentsSystem = paymentsSystem;
     }
 
     @Override

@@ -6,6 +6,12 @@ public abstract class JourneyEvent {
     private final UUID cardId;
     private final UUID readerId;
     private final long time;
+
+    /*
+          - differentiate the type of journey
+          JourneyStart -> true
+          JourneyEnd -> false
+      */
     private final boolean start;
 
     public JourneyEvent(UUID cardId, UUID readerId, boolean start) {
@@ -15,6 +21,7 @@ public abstract class JourneyEvent {
         this.start = start;
     }
 
+    // used for mock test
     public JourneyEvent(UUID cardId, UUID readerId, Clock clock, boolean start) {
         this.cardId = cardId;
         this.readerId = readerId;

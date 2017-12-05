@@ -3,34 +3,39 @@ package com.tfl.billing;
 import com.oyster.ScanListener;
 import com.tfl.billing.Adaptors.*;
 import com.tfl.external.Customer;
+import com.tfl.external.CustomerDatabase;
+import com.tfl.external.PaymentsSystem;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 /*
-    Tracks some changes in the system and stores the events
+    Track changes in the system and stores the events
+
+    Called to charge the accounts
  */
 public class TravelTracker implements ScanListener {
-
-    // all events that happened in the system
     private final List<JourneyEvent> eventLog;
-    //  packagers that are currently travelling
     private final Set<UUID> currentlyTravelling;
-    // the database in use
-    private final CustomerDb customerDatabase;
-    private PaymentSystemI paymentSystem;
+    private final CustomerDatabaseI customerDatabase;
+    private final PaymentSystemI paymentSystem;
     private final CostCalculator journeyCost;
+
 
     public TravelTracker() {
         this.eventLog = new ArrayList<>();
         this.currentlyTravelling = new HashSet<>();
-        this.customerDatabase = CustomerDbAdapter.getInstance();
-        this.paymentSystem = PaymentSystemAdaptor.getInstance();
+        this.customerDatabase = new CustomerDatabaseAdapter(CustomerDatabase.getInstance());
+        this.paymentSystem = new PaymentSystemAdaptor(PaymentsSystem.getInstance());
         this.journeyCost = new JourneyCostCalculator();
     }
 
-    // dependency injection
-    public TravelTracker(List<JourneyEvent> eventLog, Set<UUID> currentlyTravelling, CustomerDb customerDatabase, PaymentSystemI paymentSystem,CostCalculator journeyCost) {
+    // DI for mock testing
+    public TravelTracker(List<JourneyEvent> eventLog,
+                         Set<UUID> currentlyTravelling,
+                         CustomerDatabaseI customerDatabase,
+                         PaymentSystemI paymentSystem,
+                         CostCalculator journeyCost) {
         this.eventLog = eventLog;
         this.currentlyTravelling = currentlyTravelling;
         this.customerDatabase = customerDatabase;
@@ -38,14 +43,13 @@ public class TravelTracker implements ScanListener {
         this.journeyCost = journeyCost;
     }
 
-    // add this travelTracker to listen to changes from the card readers
+    // register travelTracker to listen to changes from the OyasterCardReaders
     public void connect(OysterCardReaderI... cardReaders) {
         for (OysterCardReaderI cardReader : cardReaders) {
             cardReader.register(this);
         }
     }
 
-    // called by the card reader to flag that a card was touched
     @Override
     public void cardScanned(UUID cardId, UUID readerId) {
         // if the person was registered as travelling, make a JourneyEnd
@@ -71,9 +75,7 @@ public class TravelTracker implements ScanListener {
         }
     }
 
-    // compute the cost for a client and charge him
-    // changed name from totalJourneysFor
-    // method refactored
+    // compute cost for a client and charge him
     private void chargeCustomer(Customer customer) {
         List<Journey> journeys = getJourneys(getCustomerJourneyEvents(customer));
 

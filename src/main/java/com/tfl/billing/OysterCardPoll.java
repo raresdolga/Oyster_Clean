@@ -1,11 +1,19 @@
-package com.tfl.billing.Adaptors;
+package com.tfl.billing;
 
+import com.tfl.billing.Adaptors.OysterCardReaderAdapter;
+import com.tfl.billing.Adaptors.OysterCardReaderI;
 import com.tfl.underground.OysterReaderLocator;
 import com.tfl.underground.Station;
 
 import java.util.HashMap;
 import java.util.Map;
 
+
+/*
+    Variation of ProxyPattern
+
+    Creates Adapters for OysterCardReader and maintains them in a Map for later retrieval
+ */
 public class OysterCardPoll {
     private static Map<Station, OysterCardReaderI> readers;
 

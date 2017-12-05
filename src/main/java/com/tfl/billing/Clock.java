@@ -1,8 +1,9 @@
 package com.tfl.billing;
 
 
-import java.time.LocalTime;
-
+/*
+    Interface for Mock Testing
+ */
 public interface Clock {
     long now ();
 }

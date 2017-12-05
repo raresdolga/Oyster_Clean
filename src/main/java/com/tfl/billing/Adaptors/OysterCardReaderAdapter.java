@@ -7,8 +7,12 @@ import com.oyster.ScanListener;
 import java.util.UUID;
 
 
+/*
+    Adapter for OysterCardReader
+ */
 public class OysterCardReaderAdapter implements OysterCardReaderI {
-    OysterCardReader cardReader;
+    private OysterCardReader cardReader;
+
     public OysterCardReaderAdapter(OysterCardReader cardReader){
         this.cardReader = cardReader;
     }

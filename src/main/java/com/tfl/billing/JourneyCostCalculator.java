@@ -5,7 +5,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class JourneyCostCalculator implements CostCalculator{
+
+/*
+    Strategy pattern used in TravelTracker
+
+    Class responsible for computing the cost for a customer
+ */
+public class JourneyCostCalculator implements CostCalculator {
     private final BigDecimal PEAK_LONG = new BigDecimal(3.80);
     private final BigDecimal PEAK_SHORT = new BigDecimal(2.90);
     private final BigDecimal PEAK_CAP = new BigDecimal(9.00);
@@ -13,28 +19,34 @@ public class JourneyCostCalculator implements CostCalculator{
     private final BigDecimal OFF_PEAK_SHORT = new BigDecimal(1.60);
     private final BigDecimal OFF_PEAK_CAP = new BigDecimal(7.00);
 
+    private final int minutesShortJourney = 25;
+
     public JourneyCostCalculator() {
 
     }
 
-    public BigDecimal calculateCustomerTotal(List<Journey> journeys) {
+    // compute cost of a client from his jouneys
+    public BigDecimal calculateCustomerTotal(List<Journey> customerJourneys) {
         BigDecimal customerTotal = new BigDecimal(0);
 
-        boolean donePeak = containsPeak(journeys);
+        boolean donePeak = containsPeak(customerJourneys);
 
-        for (Journey journey : journeys)
-            customerTotal = customerTotal.add(getProperJourneyPrice(journey));
+        for (Journey journey : customerJourneys) {
+            customerTotal = customerTotal.add(getJourneyPrice(journey));
+        }
 
-        if(donePeak && PEAK_CAP.compareTo(customerTotal) <= 0)
+        if(donePeak && PEAK_CAP.compareTo(customerTotal) <= 0) {
             return roundToNearestPenny(PEAK_CAP);
+        }
 
-        if(!donePeak && OFF_PEAK_CAP.compareTo(customerTotal) <= 0 )
+        if(!donePeak && OFF_PEAK_CAP.compareTo(customerTotal) <= 0) {
             return roundToNearestPenny(OFF_PEAK_CAP);
+        }
 
         return roundToNearestPenny(customerTotal);
     }
 
-    private BigDecimal getProperJourneyPrice(Journey journey) {
+    private BigDecimal getJourneyPrice(Journey journey) {
         BigDecimal journeyPrice;
 
         if(peak(journey) && isLongJorney(journey)) {
@@ -58,11 +70,12 @@ public class JourneyCostCalculator implements CostCalculator{
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(time);
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
+
         return isMorningPeakTime(hour) || isEveningPeakTime(hour);
     }
 
     private boolean isLongJorney(Journey journey){
-        return journey.durationSeconds() >= 25 * 60;
+        return journey.durationSeconds() >= minutesShortJourney * 60;
     }
 
     private boolean isMorningPeakTime(int hour) {
