@@ -93,7 +93,7 @@ public class TravelTracker implements ScanListener {
             // changed from instanceof to boolean method isStart
             if (event.isStart()) {
                 start = event;
-            } else if (!event.isStart() && start != null) {
+            } else if (start != null) {
                 journeys.add(new Journey(start, event));
                 start = null;
             }
