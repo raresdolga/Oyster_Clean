@@ -21,7 +21,6 @@ public class TravelTracker implements ScanListener {
     private final PaymentSystemI paymentSystem;
     private final CostCalculator journeyCost;
 
-
     public TravelTracker() {
         this.eventLog = new ArrayList<>();
         this.currentlyTravelling = new HashSet<>();
@@ -90,7 +89,6 @@ public class TravelTracker implements ScanListener {
         JourneyEvent start = null;
 
         for (JourneyEvent event : customerJourneyEvents) {
-            // changed from instanceof to boolean method isStart
             if (event.isStart()) {
                 start = event;
             } else if (start != null) {
@@ -98,6 +96,7 @@ public class TravelTracker implements ScanListener {
                 start = null;
             }
         }
+
         return journeys;
     }
 

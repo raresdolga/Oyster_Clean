@@ -19,8 +19,6 @@ public class JourneyCostCalculator implements CostCalculator {
     private final BigDecimal OFF_PEAK_SHORT = new BigDecimal(1.60);
     private final BigDecimal OFF_PEAK_CAP = new BigDecimal(7.00);
 
-    private final int minutesShortJourney = 25;
-
     public JourneyCostCalculator() {
 
     }
@@ -75,6 +73,7 @@ public class JourneyCostCalculator implements CostCalculator {
     }
 
     private boolean isLongJourney(Journey journey){
+        int minutesShortJourney = 25;
         return journey.durationSeconds() >= minutesShortJourney * 60;
     }
 

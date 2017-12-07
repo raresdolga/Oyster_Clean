@@ -1,6 +1,6 @@
 package com.tfl.biling;
 
-import com.tfl.biling.utils.MockSystemClock;
+import com.tfl.biling.utils.AdjustableClock;
 import com.tfl.billing.Journey;
 import com.tfl.billing.JourneyEnd;
 import com.tfl.billing.JourneyStart;
@@ -15,52 +15,46 @@ import static org.junit.Assert.assertThat;
 
 public class JourneyTest {
 
-    private MockSystemClock controlClock;
-    private JourneyStart jS;
-    private JourneyEnd jE;
+    private AdjustableClock controlClock;
+    private JourneyStart journeyStart;
+    private JourneyEnd journeyEnd;
     private Journey journey;
 
     @Before
     public void setVars() {
-
-        controlClock = new MockSystemClock();
+        controlClock = new AdjustableClock();
 
         controlClock.setCurrentTime(20, 0, 23);
-        jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
+        journeyStart = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(), controlClock);
 
         controlClock.setCurrentTime(21,22,0);
-        jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
+        journeyEnd = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(), controlClock);
 
-        journey = new Journey(jS,jE);
+        journey = new Journey(journeyStart, journeyEnd);
     }
 
     @Test
     public void durationSecondsTest(){
-
         controlClock.setCurrentTime(20, 0, 23);
-        jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
+        journeyStart = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(), controlClock);
 
         controlClock.setCurrentTime(22,22,0);
-        jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
-        journey = new Journey(jS,jE);
+        journeyEnd = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(), controlClock);
 
+        journey = new Journey(journeyStart, journeyEnd);
         assertThat(journey.durationSeconds(), is(8497));
-
     }
 
     @Test
     public void durationMinutesTest(){
-
         controlClock.setCurrentTime(20, 0, 23);
-        jS = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
+        journeyStart = new JourneyStart(UUID.randomUUID(), UUID.randomUUID(),controlClock);
 
         controlClock.setCurrentTime(21,22,00);
-        jE = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
+        journeyEnd = new JourneyEnd(UUID.randomUUID(), UUID.randomUUID(),controlClock);
 
-        journey = new Journey(jS,jE);
+        journey = new Journey(journeyStart, journeyEnd);
 
         assertThat(journey.durationMinutes(), is("81:37"));
     }
-
-
 }

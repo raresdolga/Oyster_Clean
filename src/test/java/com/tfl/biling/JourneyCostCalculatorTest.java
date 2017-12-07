@@ -1,6 +1,6 @@
 package com.tfl.biling;
 
-import com.tfl.biling.utils.MockSystemClock;
+import com.tfl.biling.utils.AdjustableClock;
 import com.tfl.billing.Journey;
 import com.tfl.billing.JourneyCostCalculator;
 import com.tfl.billing.JourneyEnd;
@@ -18,7 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 public class JourneyCostCalculatorTest {
-    private final MockSystemClock clock = new MockSystemClock();
+    private final AdjustableClock clock = new AdjustableClock();
 
     private final JourneyCostCalculator journeyCostCalculator = new JourneyCostCalculator();
     private final UUID cardId = UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00d");
@@ -42,7 +42,6 @@ public class JourneyCostCalculatorTest {
         journeys.add(journey);
     }
 
-
     @Test
     public void testCustomerCostUnfinishedJourney() {
         List<Journey> journeys = new ArrayList<>();
@@ -50,7 +49,6 @@ public class JourneyCostCalculatorTest {
         BigDecimal totalCost = journeyCostCalculator.calculateCustomerTotal(journeys);
         assertThat(totalCost, is(new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP)));
     }
-
 
     @Test
     public void testCustomerCostFinishedOffPeakJourney() {

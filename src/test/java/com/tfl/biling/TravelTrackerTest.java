@@ -1,7 +1,7 @@
 package com.tfl.biling;
 
 import com.oyster.OysterCard;
-import com.tfl.biling.utils.MockSystemClock;
+import com.tfl.biling.utils.AdjustableClock;
 import com.tfl.billing.*;
 import com.tfl.billing.adaptors.CustomerDatabaseI;
 import com.tfl.billing.adaptors.OysterCardReaderI;
@@ -23,7 +23,7 @@ import static org.junit.Assert.assertThat;
 public class TravelTrackerTest {
 
     private final JUnitRuleMockery context = new JUnitRuleMockery();
-    private final MockSystemClock clockTest = new MockSystemClock();
+    private final AdjustableClock clockTest = new AdjustableClock();
 
     // mock objects for injecting into the travelTracker, to check the changes
     private final List<JourneyEvent> eventLogTest = new ArrayList<>();
