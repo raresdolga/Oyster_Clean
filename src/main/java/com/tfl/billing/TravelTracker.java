@@ -29,6 +29,13 @@ public class TravelTracker implements ScanListener {
         this.journeyCost = new JourneyCostCalculator();
     }
 
+    // new constructor with DI
+    public TravelTracker(CustomerDatabaseI customerDatabase,
+                         PaymentSystemI paymentSystem,
+                         CostCalculator journeyCost){
+        this(new ArrayList<>(), new HashSet<>(), customerDatabase, paymentSystem, journeyCost);
+    }
+
     // DI for mock testing
     public TravelTracker(List<JourneyEvent> eventLog,
                          Set<UUID> currentlyTravelling,
@@ -43,12 +50,8 @@ public class TravelTracker implements ScanListener {
     }
 
 
-    public TravelTracker(CustomerDatabaseI customerDatabase,
-                         PaymentSystemI paymentSystem,
-                         CostCalculator journeyCost){
-        this(new ArrayList<JourneyEvent>(),new HashSet<UUID>(),customerDatabase,paymentSystem,journeyCost);
 
-    }
+
     // register travelTracker to listen to changes from the OyasterCardReaders
     public void connect(OysterCardReaderI... cardReaders) {
         for (OysterCardReaderI cardReader : cardReaders) {
