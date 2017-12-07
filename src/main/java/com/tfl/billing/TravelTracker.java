@@ -22,17 +22,17 @@ public class TravelTracker implements ScanListener {
     private final CostCalculator journeyCost;
 
     public TravelTracker() {
-        this.eventLog = new ArrayList<>();
-        this.currentlyTravelling = new HashSet<>();
-        this.customerDatabase = new CustomerDatabaseAdapter(CustomerDatabase.getInstance());
-        this.paymentSystem = new PaymentSystemAdaptor(PaymentsSystem.getInstance());
-        this.journeyCost = new JourneyCostCalculator();
+        this(new ArrayList<>(),
+                new HashSet<>(),
+                new CustomerDatabaseAdapter(CustomerDatabase.getInstance()),
+                new PaymentSystemAdaptor(PaymentsSystem.getInstance()),
+                new JourneyCostCalculator());
     }
 
     // new constructor with DI
     public TravelTracker(CustomerDatabaseI customerDatabase,
                          PaymentSystemI paymentSystem,
-                         CostCalculator journeyCost){
+                         CostCalculator journeyCost) {
         this(new ArrayList<>(), new HashSet<>(), customerDatabase, paymentSystem, journeyCost);
     }
 
