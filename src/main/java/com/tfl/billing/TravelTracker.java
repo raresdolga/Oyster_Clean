@@ -21,6 +21,7 @@ public class TravelTracker implements ScanListener {
     private final PaymentSystemI paymentSystem;
     private final CostCalculator journeyCost;
 
+    // initial public constructor
     public TravelTracker() {
         this(new ArrayList<>(),
                 new HashSet<>(),
@@ -36,7 +37,7 @@ public class TravelTracker implements ScanListener {
         this(new ArrayList<>(), new HashSet<>(), customerDatabase, paymentSystem, journeyCost);
     }
 
-    // DI for mock testing
+    // can be used for mock testing
     public TravelTracker(List<JourneyEvent> eventLog,
                          Set<UUID> currentlyTravelling,
                          CustomerDatabaseI customerDatabase,
@@ -50,15 +51,11 @@ public class TravelTracker implements ScanListener {
     }
 
 
-
-
-    // register travelTracker to listen to changes from the OyasterCardReaders
     public void connect(OysterCardReaderI... cardReaders) {
         for (OysterCardReaderI cardReader : cardReaders) {
             cardReader.register(this);
         }
     }
-
     @Override
     public void cardScanned(UUID cardId, UUID readerId) {
         // if the person was registered as travelling, make a JourneyEnd
@@ -76,7 +73,7 @@ public class TravelTracker implements ScanListener {
         }
     }
 
-    // charge all clients
+
     public void chargeAccounts() {
         List<Customer> customers = customerDatabase.getCustomers();
         for (Customer customer : customers) {
@@ -84,7 +81,6 @@ public class TravelTracker implements ScanListener {
         }
     }
 
-    // compute cost for a client and charge him
     private void chargeCustomer(Customer customer) {
         List<Journey> journeys = getJourneys(getCustomerJourneyEvents(customer));
 
@@ -93,9 +89,9 @@ public class TravelTracker implements ScanListener {
         paymentSystem.charge(customer, journeys, customerTotal);
     }
 
+
     private List<Journey> getJourneys(List<JourneyEvent> customerJourneyEvents) {
         List<Journey> journeys = new ArrayList<Journey>();
-
         JourneyEvent start = null;
 
         for (JourneyEvent event : customerJourneyEvents) {

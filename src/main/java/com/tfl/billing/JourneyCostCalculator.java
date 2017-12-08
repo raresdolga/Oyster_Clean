@@ -72,7 +72,7 @@ public class JourneyCostCalculator implements CostCalculator {
         return isMorningPeakTime(hour) || isEveningPeakTime(hour);
     }
 
-    private boolean isLongJourney(Journey journey){
+    private boolean isLongJourney(Journey journey) {
         int minutesShortJourney = 25;
         return journey.durationSeconds() >= minutesShortJourney * 60;
     }

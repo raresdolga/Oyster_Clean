@@ -28,32 +28,38 @@ public class TravelTrackerTest {
     // mock objects for injecting into the travelTracker, to check the changes
     private final List<JourneyEvent> eventLogTest = new ArrayList<>();
     private final Set<UUID> currentlyTravellingTest = new HashSet<>();
-    private final CustomerDatabaseI mockDatabase = context.mock(CustomerDatabaseI.class);
-    private final PaymentSystemI paymentSystem = context.mock(PaymentSystemI.class);
-    private final CostCalculator journeyCost = context.mock(CostCalculator.class);
+    private  CustomerDatabaseI mockDatabase = context.mock(CustomerDatabaseI.class);
+    private  PaymentSystemI paymentSystem = context.mock(PaymentSystemI.class);
+    private  CostCalculator journeyCost = context.mock(CostCalculator.class);
 
-    private final TravelTracker travelTracker = new TravelTracker(eventLogTest, currentlyTravellingTest, mockDatabase, paymentSystem,journeyCost);
+    private  TravelTracker travelTracker = new TravelTracker(eventLogTest, currentlyTravellingTest, mockDatabase, paymentSystem,journeyCost);
 
     @Rule
     public final ExpectedException exceptions = ExpectedException.none();
 
+    UUID card_id1 = UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00d");
+    UUID card_id2 = UUID.fromString("609e72ac-8be3-4476-8b45-01db8c7f122b");
+    UUID reader_id1 = UUID.randomUUID();
+    UUID reader_id2 = UUID.randomUUID();
+
     @Test
     public void cardScannedCreatesJourneyStart() {
-        UUID card_id1 = UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00d");
-        UUID card_id2 = UUID.fromString("609e72ac-8be3-4476-8b45-01db8c7f122b");
-        UUID reader_id1 = UUID.randomUUID();
-        UUID reader_id2 = UUID.randomUUID();
+        mockDatabase = context.mock(CustomerDatabaseI.class);
+        paymentSystem = context.mock(PaymentSystemI.class);
+        journeyCost = context.mock(CostCalculator.class);
+
+        travelTracker = new TravelTracker(eventLogTest, currentlyTravellingTest, mockDatabase, paymentSystem, journeyCost);
 
         context.checking(new Expectations(){{
             oneOf(mockDatabase).isRegisteredId(card_id1); will(returnValue(true));
             oneOf(mockDatabase).isRegisteredId(card_id2); will(returnValue(true));
         }});
 
-        travelTracker.cardScanned(card_id1,reader_id1);
-        travelTracker.cardScanned(card_id2,reader_id2);
+        travelTracker.cardScanned(card_id1, reader_id1);
+        travelTracker.cardScanned(card_id2, reader_id2);
 
-        assertThat(eventLogTest.size(), is(2));
         assertThat(currentlyTravellingTest.size(), is(2));
+        assertThat(eventLogTest.size(), is(2));
         assertThat(eventLogTest.get(0).cardId(), is(card_id1));
         assertThat(eventLogTest.get(1).cardId(), is(card_id2));
 
