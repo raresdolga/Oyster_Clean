@@ -113,7 +113,7 @@ public class TravelTrackerTest {
 
     @Test
     @SuppressWarnings(value = "unchecked")
-    public void chargeAccountsTest(){
+    public void chargeAccountsOne(){
         Customer customer1 = new Customer("Mark Anton", new OysterCard("76800000-8cf0-11bd-b23e-01db8c7f122b"));
         List<Customer> customers = new ArrayList<>();
         customers.add(customer1);
@@ -129,12 +129,60 @@ public class TravelTrackerTest {
         eventLogTest.put(customer1.cardId(), new ArrayList<>(Arrays.asList(journeyStartTest, journeyEndTest)));
 
         BigDecimal totalCost1 = new BigDecimal(2.40).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalCost2 = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
 
         context.checking(new Expectations(){{
             oneOf(mockDatabase).getCustomers(); will(returnValue(customers));
             oneOf(journeyCost).calculateCustomerTotal(with(any(List.class))); will(returnValue(totalCost1));
             oneOf(paymentSystem).charge(with(customers.get(0)),with(any(List.class)),with(totalCost1));
+        }});
+
+        travelTracker.chargeAccounts();
+
+        assertThat(eventLogTest.get(customer1.cardId()).size(), is(2));
+        assertThat(currentlyTravellingTest.size(), is(0));
+
+        context.assertIsSatisfied();
+    }
+
+    @Test
+    @SuppressWarnings(value = "unchecked")
+    public void chargeAccountsMultiple(){
+        Customer customer1 = new Customer("Mark Anton", new OysterCard("76800000-8cf0-11bd-b23e-01db8c7f122b"));
+        Customer customer2 = new Customer("Maria Popa", new OysterCard("609e72ac-8be3-4476-8b45-01db8c7f122b"));
+        List<Customer> customers = new ArrayList<>();
+        customers.add(customer1);
+        customers.add(customer2);
+
+        UUID testReader = UUID.randomUUID();
+        UUID testReader2 = UUID.randomUUID();
+
+        clockTest.setCurrentTime(10,20,0);
+        JourneyStart journeyStartTest = new JourneyStart(customers.get(0).cardId(), testReader, clockTest);
+
+        clockTest.setCurrentTime(11,20,0);
+        JourneyEnd journeyEndTest = new JourneyEnd(customers.get(0).cardId(), testReader, clockTest);
+
+        eventLogTest.put(customer1.cardId(), new ArrayList<>(Arrays.asList(journeyStartTest, journeyEndTest)));
+
+        clockTest.setCurrentTime(22,20,0);
+       journeyStartTest = new JourneyStart(customers.get(1).cardId(), testReader2, clockTest);
+
+        clockTest.setCurrentTime(23,10,0);
+       journeyEndTest = new JourneyEnd(customers.get(1).cardId(), testReader2, clockTest);
+
+        eventLogTest.put(customer1.cardId(), new ArrayList<>(Arrays.asList(journeyStartTest, journeyEndTest)));
+
+
+        BigDecimal totalCost1 = new BigDecimal(2.40).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal totalCost2 = new BigDecimal(2.90).setScale(2, BigDecimal.ROUND_HALF_UP);
+
+        context.checking(new Expectations(){{
+            oneOf(mockDatabase).getCustomers(); will(returnValue(customers));
+            oneOf(journeyCost).calculateCustomerTotal(with(any(List.class))); will(returnValue(totalCost1));
+            oneOf(paymentSystem).charge(with(customers.get(0)),with(any(List.class)),with(totalCost1));
+
+            oneOf(journeyCost).calculateCustomerTotal(with(any(List.class))); will(returnValue(totalCost2));
+            oneOf(paymentSystem).charge(with(customers.get(1)),with(any(List.class)),with(totalCost2));
         }});
 
         travelTracker.chargeAccounts();

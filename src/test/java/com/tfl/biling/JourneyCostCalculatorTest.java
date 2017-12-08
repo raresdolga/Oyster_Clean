@@ -43,7 +43,7 @@ public class JourneyCostCalculatorTest {
     }
 
     @Test
-    public void testCustomerCostUnfinishedJourney() {
+    public void customerCostUnfinishedJourney() {
         List<Journey> journeys = new ArrayList<>();
 
         BigDecimal totalCost = journeyCostCalculator.calculateCustomerTotal(journeys);
@@ -51,7 +51,7 @@ public class JourneyCostCalculatorTest {
     }
 
     @Test
-    public void testCustomerCostFinishedOffPeakJourney() {
+    public void customerCostFinishedOffPeakJourney() {
         clock.setCurrentTime(9, 20, 0);
         JourneyStart journeyStart = new JourneyStart(cardId,reader_id1, clock);
 
@@ -136,4 +136,110 @@ public class JourneyCostCalculatorTest {
 
         assertThat(totalCost, is(new BigDecimal(7.00).setScale(2, BigDecimal.ROUND_HALF_UP)));
     }
+
+    @Test
+    public void dailyCapShortPeak(){
+        journeys = new ArrayList<>();
+
+        clock.setCurrentTime(11, 20, 0);
+        JourneyStart journeyStart = new JourneyStart(cardId,reader_id1, clock);
+
+        clock.setCurrentTime(11, 35, 0);
+        JourneyEnd journeyEnd = new JourneyEnd(cardId,reader_id2, clock);
+
+        Journey journey = new Journey(journeyStart,journeyEnd);
+        journeys.add(journey);
+        journeys.add(journey);
+
+        clock.setCurrentTime(14, 40, 0);
+        journeyStart = new JourneyStart(cardId,reader_id1, clock);
+
+        clock.setCurrentTime(15, 05, 0);
+        journeyEnd = new JourneyEnd(cardId,reader_id2, clock);
+
+        journey = new Journey(journeyStart,journeyEnd);
+        journeys.add(journey);
+        journeys.add(journey);
+        BigDecimal totalCost = journeyCostCalculator.calculateCustomerTotal(journeys);
+
+        assertThat(totalCost, is(new BigDecimal(7).setScale(2, BigDecimal.ROUND_HALF_UP)));
+
+    }
+
+    @Test
+    public void shortOffPeak(){
+        journeys = new ArrayList<>();
+
+        clock.setCurrentTime(11, 20, 0);
+        JourneyStart journeyStart = new JourneyStart(cardId,reader_id1, clock);
+
+        clock.setCurrentTime(11, 35, 0);
+        JourneyEnd journeyEnd = new JourneyEnd(cardId,reader_id2, clock);
+
+        Journey journey = new Journey(journeyStart,journeyEnd);
+        journeys.add(journey);
+
+        BigDecimal totalCost = journeyCostCalculator.calculateCustomerTotal(journeys);
+
+        assertThat(totalCost, is(new BigDecimal(1.60).setScale(2, BigDecimal.ROUND_HALF_UP)));
+
+    }
+
+    @Test
+    public void shortPeak(){
+        journeys = new ArrayList<>();
+
+        clock.setCurrentTime(8, 20, 0);
+        JourneyStart journeyStart = new JourneyStart(cardId,reader_id1, clock);
+
+        clock.setCurrentTime(8, 40, 0);
+        JourneyEnd journeyEnd = new JourneyEnd(cardId,reader_id2, clock);
+
+        Journey journey = new Journey(journeyStart,journeyEnd);
+        journeys.add(journey);
+
+        BigDecimal totalCost = journeyCostCalculator.calculateCustomerTotal(journeys);
+
+        assertThat(totalCost, is(new BigDecimal(2.90).setScale(2, BigDecimal.ROUND_HALF_UP)));
+
+    }
+
+    @Test
+    public void longOffPeak(){
+        journeys = new ArrayList<>();
+
+        clock.setCurrentTime(22, 20, 0);
+        JourneyStart journeyStart = new JourneyStart(cardId,reader_id1, clock);
+
+        clock.setCurrentTime(23, 35, 0);
+        JourneyEnd journeyEnd = new JourneyEnd(cardId,reader_id2, clock);
+
+        Journey journey = new Journey(journeyStart,journeyEnd);
+        journeys.add(journey);
+
+        BigDecimal totalCost = journeyCostCalculator.calculateCustomerTotal(journeys);
+
+        assertThat(totalCost, is(new BigDecimal(2.70).setScale(2, BigDecimal.ROUND_HALF_UP)));
+
+    }
+
+    @Test
+    public void longPeak(){
+        journeys = new ArrayList<>();
+
+        clock.setCurrentTime(8, 20, 0);
+        JourneyStart journeyStart = new JourneyStart(cardId,reader_id1, clock);
+
+        clock.setCurrentTime(9, 35, 0);
+        JourneyEnd journeyEnd = new JourneyEnd(cardId,reader_id2, clock);
+
+        Journey journey = new Journey(journeyStart,journeyEnd);
+        journeys.add(journey);
+
+        BigDecimal totalCost = journeyCostCalculator.calculateCustomerTotal(journeys);
+
+        assertThat(totalCost, is(new BigDecimal(3.80).setScale(2, BigDecimal.ROUND_HALF_UP)));
+
+    }
+
 }
