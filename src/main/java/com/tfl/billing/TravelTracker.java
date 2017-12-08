@@ -15,7 +15,7 @@ import java.util.*;
     Called to charge the accounts
  */
 public class TravelTracker implements ScanListener {
-    private final List<JourneyEvent> eventLog;
+    private final Map<UUID, List<JourneyEvent>> eventLog;
     private final Set<UUID> currentlyTravelling;
     private final CustomerDatabaseI customerDatabase;
     private final PaymentSystemI paymentSystem;
@@ -23,7 +23,7 @@ public class TravelTracker implements ScanListener {
 
     // initial public constructor
     public TravelTracker() {
-        this(new ArrayList<>(),
+        this(new HashMap<>(),
                 new HashSet<>(),
                 new CustomerDatabaseAdapter(CustomerDatabase.getInstance()),
                 new PaymentSystemAdaptor(PaymentsSystem.getInstance()),
@@ -34,11 +34,11 @@ public class TravelTracker implements ScanListener {
     public TravelTracker(CustomerDatabaseI customerDatabase,
                          PaymentSystemI paymentSystem,
                          CostCalculator journeyCost) {
-        this(new ArrayList<>(), new HashSet<>(), customerDatabase, paymentSystem, journeyCost);
+        this(new HashMap<>(), new HashSet<>(), customerDatabase, paymentSystem, journeyCost);
     }
 
     // can be used for mock testing
-    public TravelTracker(List<JourneyEvent> eventLog,
+    public TravelTracker(Map<UUID, List<JourneyEvent>> eventLog,
                          Set<UUID> currentlyTravelling,
                          CustomerDatabaseI customerDatabase,
                          PaymentSystemI paymentSystem,
@@ -56,23 +56,28 @@ public class TravelTracker implements ScanListener {
             cardReader.register(this);
         }
     }
+
     @Override
     public void cardScanned(UUID cardId, UUID readerId) {
+        // if the person does not have an event
+        if (!eventLog.containsKey(cardId)) {
+            eventLog.put(cardId, new ArrayList<>());
+        }
+
         // if the person was registered as travelling, make a JourneyEnd
         if (currentlyTravelling.contains(cardId)) {
-            eventLog.add(new JourneyEnd(cardId, readerId));
+            eventLog.get(cardId).add(new JourneyEnd(cardId, readerId));
             currentlyTravelling.remove(cardId);
         } else {
             // if the person is not travelling, make a JourneyStart
             if (customerDatabase.isRegisteredId(cardId)) {
                 currentlyTravelling.add(cardId);
-                eventLog.add(new JourneyStart(cardId, readerId));
+                eventLog.get(cardId).add(new JourneyStart(cardId, readerId));
             } else {
                 throw new UnknownOysterCardException(cardId);
             }
         }
     }
-
 
     public void chargeAccounts() {
         List<Customer> customers = customerDatabase.getCustomers();
@@ -82,13 +87,12 @@ public class TravelTracker implements ScanListener {
     }
 
     private void chargeCustomer(Customer customer) {
-        List<Journey> journeys = getJourneys(getCustomerJourneyEvents(customer));
+        List<Journey> journeys = getJourneys(eventLog.getOrDefault(customer.cardId(), new ArrayList<>()));
 
         BigDecimal customerTotal = journeyCost.calculateCustomerTotal(journeys);
 
         paymentSystem.charge(customer, journeys, customerTotal);
     }
-
 
     private List<Journey> getJourneys(List<JourneyEvent> customerJourneyEvents) {
         List<Journey> journeys = new ArrayList<Journey>();
@@ -104,15 +108,5 @@ public class TravelTracker implements ScanListener {
         }
 
         return journeys;
-    }
-
-    private List<JourneyEvent> getCustomerJourneyEvents(Customer customer) {
-        List<JourneyEvent> customerJourneyEvents = new ArrayList<JourneyEvent>();
-        for (JourneyEvent journeyEvent : eventLog) {
-            if (journeyEvent.cardId().equals(customer.cardId())) {
-                customerJourneyEvents.add(journeyEvent);
-            }
-        }
-        return customerJourneyEvents;
     }
 }

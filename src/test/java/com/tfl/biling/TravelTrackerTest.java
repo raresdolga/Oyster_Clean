@@ -26,42 +26,36 @@ public class TravelTrackerTest {
     private final AdjustableClock clockTest = new AdjustableClock();
 
     // mock objects for injecting into the travelTracker, to check the changes
-    private final List<JourneyEvent> eventLogTest = new ArrayList<>();
+    private final Map<UUID, List<JourneyEvent>> eventLogTest = new HashMap<>();
     private final Set<UUID> currentlyTravellingTest = new HashSet<>();
-    private  CustomerDatabaseI mockDatabase = context.mock(CustomerDatabaseI.class);
-    private  PaymentSystemI paymentSystem = context.mock(PaymentSystemI.class);
-    private  CostCalculator journeyCost = context.mock(CostCalculator.class);
+    private final CustomerDatabaseI mockDatabase = context.mock(CustomerDatabaseI.class);
+    private final PaymentSystemI paymentSystem = context.mock(PaymentSystemI.class);
+    private final CostCalculator journeyCost = context.mock(CostCalculator.class);
 
-    private  TravelTracker travelTracker = new TravelTracker(eventLogTest, currentlyTravellingTest, mockDatabase, paymentSystem,journeyCost);
+    private final TravelTracker travelTracker = new TravelTracker(eventLogTest, currentlyTravellingTest, mockDatabase, paymentSystem,journeyCost);
 
     @Rule
     public final ExpectedException exceptions = ExpectedException.none();
 
-    UUID card_id1 = UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00d");
-    UUID card_id2 = UUID.fromString("609e72ac-8be3-4476-8b45-01db8c7f122b");
-    UUID reader_id1 = UUID.randomUUID();
-    UUID reader_id2 = UUID.randomUUID();
-
     @Test
     public void cardScannedCreatesJourneyStart() {
-        mockDatabase = context.mock(CustomerDatabaseI.class);
-        paymentSystem = context.mock(PaymentSystemI.class);
-        journeyCost = context.mock(CostCalculator.class);
-
-        travelTracker = new TravelTracker(eventLogTest, currentlyTravellingTest, mockDatabase, paymentSystem, journeyCost);
+        UUID card_id1 = UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00d");
+        UUID card_id2 = UUID.fromString("609e72ac-8be3-4476-8b45-01db8c7f122b");
+        UUID reader_id1 = UUID.randomUUID();
+        UUID reader_id2 = UUID.randomUUID();
 
         context.checking(new Expectations(){{
             oneOf(mockDatabase).isRegisteredId(card_id1); will(returnValue(true));
             oneOf(mockDatabase).isRegisteredId(card_id2); will(returnValue(true));
         }});
 
-        travelTracker.cardScanned(card_id1, reader_id1);
-        travelTracker.cardScanned(card_id2, reader_id2);
+        travelTracker.cardScanned(card_id1,reader_id1);
+        travelTracker.cardScanned(card_id2,reader_id2);
 
         assertThat(currentlyTravellingTest.size(), is(2));
         assertThat(eventLogTest.size(), is(2));
-        assertThat(eventLogTest.get(0).cardId(), is(card_id1));
-        assertThat(eventLogTest.get(1).cardId(), is(card_id2));
+        assertThat(eventLogTest.get(card_id1).get(0).isStart(), is(true));
+        assertThat(eventLogTest.get(card_id2).get(0).isStart(), is(true));
 
         context.assertIsSatisfied();
     }
@@ -78,7 +72,7 @@ public class TravelTrackerTest {
         assertThat(currentlyTravellingTest.size(), is(1));
         travelTracker.cardScanned(card_id1,reader_id1);
         assertThat(currentlyTravellingTest.size(), is(0));
-        assertThat(eventLogTest.size(), is(2));
+        assertThat(eventLogTest.get(card_id1).size(), is(2));
 
         context.assertIsSatisfied();
     }
@@ -120,9 +114,9 @@ public class TravelTrackerTest {
     @Test
     @SuppressWarnings(value = "unchecked")
     public void chargeAccountsTest(){
+        Customer customer1 = new Customer("Mark Anton", new OysterCard("76800000-8cf0-11bd-b23e-01db8c7f122b"));
         List<Customer> customers = new ArrayList<>();
-        customers.add(new Customer("Mark Anton", new OysterCard("76800000-8cf0-11bd-b23e-01db8c7f122b")));
-        customers.add(new Customer("Jessica Anton", new OysterCard("94619932-8be3-4476-8b45-01db8c7f")));
+        customers.add(customer1);
 
         UUID testReader = UUID.randomUUID();
 
@@ -132,8 +126,7 @@ public class TravelTrackerTest {
         clockTest.setCurrentTime(11,20,0);
         JourneyEnd journeyEndTest = new JourneyEnd(customers.get(0).cardId(), testReader, clockTest);
 
-        eventLogTest.add(journeyStartTest);
-        eventLogTest.add(journeyEndTest);
+        eventLogTest.put(customer1.cardId(), new ArrayList<>(Arrays.asList(journeyStartTest, journeyEndTest)));
 
         BigDecimal totalCost1 = new BigDecimal(2.40).setScale(2, BigDecimal.ROUND_HALF_UP);
         BigDecimal totalCost2 = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
@@ -142,13 +135,11 @@ public class TravelTrackerTest {
             oneOf(mockDatabase).getCustomers(); will(returnValue(customers));
             oneOf(journeyCost).calculateCustomerTotal(with(any(List.class))); will(returnValue(totalCost1));
             oneOf(paymentSystem).charge(with(customers.get(0)),with(any(List.class)),with(totalCost1));
-            oneOf(journeyCost).calculateCustomerTotal(new ArrayList<Journey>()); will(returnValue(totalCost2));
-            oneOf(paymentSystem).charge(customers.get(1), new ArrayList<>(),totalCost2);
         }});
 
         travelTracker.chargeAccounts();
 
-        assertThat(eventLogTest.size(), is(2));
+        assertThat(eventLogTest.get(customer1.cardId()).size(), is(2));
         assertThat(currentlyTravellingTest.size(), is(0));
 
         context.assertIsSatisfied();
